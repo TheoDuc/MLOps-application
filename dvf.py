@@ -5,6 +5,7 @@ from DVF transactions enriched with Filosofi socio-economic data
 
 from pathlib import Path
 
+import argparse
 import duckdb
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -22,7 +23,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OrdinalEncoder
 from skore import EstimatorReport
 
-N_TREES = 1500
+parser = argparse.ArgumentParser(description="Nombre d'arbres")
+parser.add_argument(
+    "--N_TREES", type=int, default=1500, help="Nombre d'arbre à entraîner"
+)
+N_TREES = parser.parse_args()
+
 LEARNING_RATE = 0.03
 NUM_LEAVES = 31
 NUMERIC_FEATURES = [
