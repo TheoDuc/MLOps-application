@@ -323,6 +323,13 @@ dvf["log_distance_eiffel"] = np.log1p(distance_eiffel_km)
 # are dropped.
 dvf_start_data = dvf.dropna(subset=["prix_m2"])
 
+# Checks of the dataset
+
+def check_code_commune_formatting():
+    """
+    Checks the city code in the entire dataset
+    """
+    assert (dvf['code_commune'].apply(len) == 5).all()
 
 # PRICE PER M² BY MUNICIPALITY ---------------------------------------
 

@@ -3,3 +3,4 @@ data/
 *cache
 *.csv
 *.png
+experiments.ipynb
