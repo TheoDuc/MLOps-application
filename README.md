@@ -15,3 +15,7 @@ Données DVF récupérées et simplifiées de https://www.data.gouv.fr/datasets/
 ## Requis pour utiliser l'API
 
 Créez un .env et mettez y votre jeton api sur la variable JETON_API
+
+## Les packages nécessaires
+
+L'ensemble des packages dont vous aurez besoin ainsi que leur version se trouvent dans le fichier `requirements.txt`.

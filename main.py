@@ -4,6 +4,7 @@ from DVF transactions enriched with Filosofi socio-economic data
 """
 
 import argparse
+import logging
 import os
 from pathlib import Path
 
@@ -27,6 +28,14 @@ from skore import EstimatorReport
 from import_data import download_sources, get_melodi_indicator
 
 load_dotenv()
+
+logging.basicConfig(
+    format="{asctime} - {levelname} - {message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M",
+)
+
+logging.info("Lancement du programme principal !")
 
 parser = argparse.ArgumentParser(description="Nombre d'arbres")
 parser.add_argument(
