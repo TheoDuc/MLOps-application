@@ -190,65 +190,48 @@ dvf = dvf.sjoin(filo, how="left", predicate="within")
 # DVF codes Paris by arrondissement (75101 to 75120), not as one municipality
 # (75056): without the ARM level, Paris sales would get no municipality data.
 
-dataset = "DS_FILOSOFI_CC"
-dimension = "FILOSOFI_MEASURE"
-code = "MED_SL"
-value_name = "NIVVIE_MEDIAN"
-time_period = 2023
-geo_level = ["COM", "ARM"]
 
-url = f"https://api.insee.fr/melodi/data/{dataset}"
+def get_melodi_indicator(
+    code: str,
+    value_name: str,
+    API: str = JETON_API,
+    dataset: str = "DS_FILOSOFI_CC",
+    dimension: str = "FILOSOFI_MEASURE",
+    time_period: int = 2023,
+    geo_level: list = None,
+) -> pd.DataFrame:
+    if geo_level == None:
+        geo_level = ["COM", "ARM"]
 
-params = {
-    "GEO": geo_level,
-    dimension: code,
-    "TIME_PERIOD": time_period,
-    "maxResult": 40000,
-}
+    url = f"https://api.insee.fr/melodi/data/{dataset}"
 
-headers = {"Authorization": f"Bearer {JETON_API}"}
-
-response = requests.get(url, params=params, headers=headers, timeout=60)
-response.raise_for_status()
-observations = response.json()["observations"]
-
-niveau_vie = pd.DataFrame(
-    {
-        "CODGEO": obs["dimensions"]["GEO"].split("-")[-1],
-        value_name: obs["measures"]["OBS_VALUE_NIVEAU"].get("value"),
+    params = {
+        "GEO": geo_level,
+        dimension: code,
+        "TIME_PERIOD": time_period,
+        "maxResult": 40000,
     }
-    for obs in observations
-)
 
-dataset = "DS_FILOSOFI_CC"
-dimension = "FILOSOFI_MEASURE"
-code = "PR_MD60"
-value_name = "TAUX_PAUVRETE"
-time_period = 2023
-geo_level = ["COM", "ARM"]
+    headers = {"Authorization": f"Bearer {JETON_API}"}
 
-url = f"https://api.insee.fr/melodi/data/{dataset}"
+    response = requests.get(url, params=params, headers=headers, timeout=60)
+    response.raise_for_status()
+    observations = response.json()["observations"]
 
-params = {
-    "GEO": geo_level,
-    dimension: code,
-    "TIME_PERIOD": time_period,
-    "maxResult": 40000,
-}
+    df = pd.DataFrame(
+        {
+            "CODGEO": obs["dimensions"]["GEO"].split("-")[-1],
+            value_name: obs["measures"]["OBS_VALUE_NIVEAU"].get("value"),
+        }
+        for obs in observations
+    )
 
-headers = {"Authorization": f"Bearer {JETON_API}"}
+    return df
 
-response = requests.get(url, params=params, headers=headers, timeout=60)
-response.raise_for_status()
-observations = response.json()["observations"]
 
-taux_pauvrete = pd.DataFrame(
-    {
-        "CODGEO": obs["dimensions"]["GEO"].split("-")[-1],
-        value_name: obs["measures"]["OBS_VALUE_NIVEAU"].get("value"),
-    }
-    for obs in observations
-)
+niveau_vie = get_melodi_indicator("MED_SL", "NIVVIE_MEDIAN")
+
+taux_pauvrete = get_melodi_indicator("PR_MD60", "TAUX_PAUVRETE")
 
 dvf = dvf.merge(niveau_vie, left_on="code_commune", right_on="CODGEO", how="left").drop(
     columns="CODGEO"
