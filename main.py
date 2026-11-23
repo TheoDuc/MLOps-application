@@ -12,7 +12,6 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import requests
 import seaborn as sns
 from dotenv import load_dotenv
 from lightgbm import LGBMRegressor
@@ -24,6 +23,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OrdinalEncoder
 from skore import EstimatorReport
+
+from import_data import download_sources, get_melodi_indicator
 
 load_dotenv()
 
@@ -69,14 +70,6 @@ SOURCES = {
 }
 
 con = duckdb.connect(database=":memory:")
-
-
-def download_sources(url_fichier, cible):
-    """Download url_fichier and write it to cible"""
-    r = requests.get(url_fichier, timeout=120)
-    r.raise_for_status()
-    with open(cible, "wb") as f:
-        f.write(r.content)
 
 
 # DATA IMPORT ---------------------------------------
@@ -189,44 +182,6 @@ dvf = dvf.sjoin(filo, how="left", predicate="within")
 # Filosofi municipality-level data (Melodi API)
 # DVF codes Paris by arrondissement (75101 to 75120), not as one municipality
 # (75056): without the ARM level, Paris sales would get no municipality data.
-
-
-def get_melodi_indicator(
-    code: str,
-    value_name: str,
-    API: str = JETON_API,
-    dataset: str = "DS_FILOSOFI_CC",
-    dimension: str = "FILOSOFI_MEASURE",
-    time_period: int = 2023,
-    geo_level: list = None,
-) -> pd.DataFrame:
-    if geo_level == None:
-        geo_level = ["COM", "ARM"]
-
-    url = f"https://api.insee.fr/melodi/data/{dataset}"
-
-    params = {
-        "GEO": geo_level,
-        dimension: code,
-        "TIME_PERIOD": time_period,
-        "maxResult": 40000,
-    }
-
-    headers = {"Authorization": f"Bearer {JETON_API}"}
-
-    response = requests.get(url, params=params, headers=headers, timeout=60)
-    response.raise_for_status()
-    observations = response.json()["observations"]
-
-    df = pd.DataFrame(
-        {
-            "CODGEO": obs["dimensions"]["GEO"].split("-")[-1],
-            value_name: obs["measures"]["OBS_VALUE_NIVEAU"].get("value"),
-        }
-        for obs in observations
-    )
-
-    return df
 
 
 niveau_vie = get_melodi_indicator("MED_SL", "NIVVIE_MEDIAN")
